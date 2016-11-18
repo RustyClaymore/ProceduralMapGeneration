@@ -18,7 +18,13 @@ public class VoronoiDiagramRoads : MonoBehaviour
     public GameObject pointPrefab;
     public GameObject siteCenterPrefab;
     public GameObject voronoiPointPrefab;
+
+    // LineRenderer Without Script
     public GameObject voronoiRoad;
+    // LineRenderer with Script
+    public GameObject voronoiRoadWithScript;
+
+    public GameObject roadPoint;
 
     [Range(1, 16)]
     public int voronoiEdgeSubdivions;
@@ -30,6 +36,8 @@ public class VoronoiDiagramRoads : MonoBehaviour
     private List<Edge> edges;
 
     private EdgeData[] edgesData;
+
+    private GameObject[] roadPoints;
 
     IEnumerator Start()
     {
@@ -56,7 +64,8 @@ public class VoronoiDiagramRoads : MonoBehaviour
         CopyEdgeToEdgeData();
 
         yield return StartCoroutine(AddVoronoiPointsToScene());
-        yield return StartCoroutine(AddRoadsFromEdgeData());
+        //yield return StartCoroutine(AddRoadsFromEdgeData());
+        yield return StartCoroutine(AddRoadsLineRenderers());
     }
 
     private List<Vector2f> CreateRandomPoint()
@@ -119,6 +128,83 @@ public class VoronoiDiagramRoads : MonoBehaviour
             GameObject road = (GameObject)Instantiate(voronoiRoad, leftPoint, Quaternion.identity);
             road.GetComponent<LineRenderer>().SetPosition(0, leftPoint);
             road.GetComponent<LineRenderer>().SetPosition(1, rightPoint);
+
+            yield return new WaitForSeconds(yieldDuration);
+        }
+    }
+
+    int FindNumberOfRoadPoints()
+    {
+        int numberOfPoints = 0;
+
+        for (int i = 0; i < edgesData.Length; i++)
+        {
+            if (edgesData[i].GetSegmentsCount() == 1)
+            {
+                numberOfPoints++;
+            }
+            else
+            {
+                for (int j = 0; j < edgesData[i].GetSegmentsCount(); j++)
+                {
+                    numberOfPoints++;
+                }
+            }
+        }
+
+        return numberOfPoints;
+    }
+
+    IEnumerator AddRoadPoints()
+    {
+        roadPoints = new GameObject[FindNumberOfRoadPoints() * 2];
+
+        Debug.Log(FindNumberOfRoadPoints());
+        Debug.Log(edgesData.Length);
+        int counter = 0;
+
+        for (int i = 0; i < roadPoints.Length / (voronoiEdgeSubdivions * 2); i++)
+        {
+            if (edgesData[i].GetSegmentsCount() == 1)
+            {
+                roadPoints[i * 2] = (GameObject)Instantiate(roadPoint, edgesData[i].GetInitialPoint(), Quaternion.identity);
+                roadPoints[(i * 2)+ 1] = (GameObject)Instantiate(roadPoint, edgesData[i].GetFinalPoint(), Quaternion.identity);
+            }
+            else
+            {
+                for (int j = 0; j < edgesData[i].GetSegmentsCount(); j++)
+                {
+                    roadPoints[counter] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetInitialPoint(), Quaternion.identity);
+                    roadPoints[counter + 1] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetFinalPoint(), Quaternion.identity);
+                    counter += 2;
+
+                    //if (j == 0)
+                    //{
+                    //    roadPoints[(i * 2) + j] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetInitialPoint(), Quaternion.identity);
+                    //    roadPoints[(i * 2 + 1) + j] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetFinalPoint(), Quaternion.identity);
+                    //}
+                    //else
+                    //{
+                    //    roadPoints[(i * 2) + j + 1] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetInitialPoint(), Quaternion.identity);
+                    //    roadPoints[(i * 2 + 1) + j + 1] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetFinalPoint(), Quaternion.identity);
+                    //}
+                }
+            }
+        }
+
+        yield return new WaitForSeconds(yieldDuration);
+    }
+
+    IEnumerator AddRoadsLineRenderers()
+    {
+        yield return AddRoadPoints();
+        
+        for (int i = 0; i < roadPoints.Length; i+=2)
+        {
+            Debug.Log(i);
+            GameObject road = (GameObject)Instantiate(voronoiRoadWithScript, roadPoints[i].transform.position, Quaternion.identity);
+            road.GetComponent<SetRoadNextPoint>().SetInitialPoint(roadPoints[i]);
+            road.GetComponent<SetRoadNextPoint>().SetNextPoint(roadPoints[i + 1]);
 
             yield return new WaitForSeconds(yieldDuration);
         }
