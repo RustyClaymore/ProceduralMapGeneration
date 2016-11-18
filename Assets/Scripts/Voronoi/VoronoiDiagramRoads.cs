@@ -20,13 +20,16 @@ public class VoronoiDiagramRoads : MonoBehaviour
     public GameObject voronoiPointPrefab;
     public GameObject voronoiRoad;
 
+    [Range(1, 16)]
+    public int voronoiEdgeSubdivions;
+
     public float yieldDuration;
 
     // This is where we will store the resulting data
     private Dictionary<Vector2f, Site> sites;
     private List<Edge> edges;
 
-    public EdgeData[] edgesData;
+    private EdgeData[] edgesData;
 
     IEnumerator Start()
     {
@@ -123,13 +126,26 @@ public class VoronoiDiagramRoads : MonoBehaviour
 
     IEnumerator AddRoadsFromEdgeData()
     {
-        Debug.Log(edgesData.Length);
         for (int i = 0; i < edgesData.Length; i++)
         {
-            GameObject road = (GameObject)Instantiate(voronoiRoad, edgesData[i].m_initialPoint, Quaternion.identity);
-            road.GetComponent<LineRenderer>().SetPosition(0, edgesData[i].m_initialPoint);
-            road.GetComponent<LineRenderer>().SetPosition(1, edgesData[i].m_finalPoint);
-
+            if (edgesData[i].GetSegmentsCount() == 1)
+            {
+                GameObject road = (GameObject)Instantiate(voronoiRoad, edgesData[i].GetInitialPoint(), Quaternion.identity);
+                road.GetComponent<LineRenderer>().SetPosition(0, edgesData[i].GetInitialPoint());
+                road.GetComponent<LineRenderer>().SetPosition(1, edgesData[i].GetFinalPoint());
+            }
+            else
+            {
+                Debug.Log(edgesData[i].GetSegmentsCount());
+                for (int j = 0; j < edgesData[i].GetSegmentsCount(); j++)
+                {
+                    Debug.Log(j);
+                    GameObject road = (GameObject)Instantiate(voronoiRoad, edgesData[i].m_edgeSegments[j].GetInitialPoint(), Quaternion.identity);
+                    road.GetComponent<LineRenderer>().SetPosition(0, edgesData[i].m_edgeSegments[j].GetInitialPoint());
+                    road.GetComponent<LineRenderer>().SetPosition(1, edgesData[i].m_edgeSegments[j].GetFinalPoint());
+                    yield return new WaitForSeconds(yieldDuration);
+                }
+            }
             yield return new WaitForSeconds(yieldDuration);
         }
     }
@@ -158,6 +174,8 @@ public class VoronoiDiagramRoads : MonoBehaviour
             Vector3 rightPoint = new Vector3(edge.ClippedEnds[LR.RIGHT].x, 0, edge.ClippedEnds[LR.RIGHT].y);
 
             edgesData[counter] = new EdgeData(leftPoint, rightPoint, 1);
+            edgesData[counter].DivideEdgeIntoSegments(voronoiEdgeSubdivions);
+
             counter++;
         }
     }
