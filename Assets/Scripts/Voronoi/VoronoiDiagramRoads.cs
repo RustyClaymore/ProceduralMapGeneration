@@ -6,6 +6,7 @@ using csDelaunay;
 
 public class VoronoiDiagramRoads : MonoBehaviour
 {
+    // ********************************** PUBLICS *****************************
 
     // The number of polygons/sites we want
     public int polygonNumber = 200;
@@ -30,6 +31,9 @@ public class VoronoiDiagramRoads : MonoBehaviour
     public int voronoiEdgeSubdivions;
 
     public float yieldDuration;
+    public bool projectOnTerrain;
+
+    // ********************************** PRIVATES *****************************
 
     // This is where we will store the resulting data
     private Dictionary<Vector2f, Site> sites;
@@ -66,6 +70,10 @@ public class VoronoiDiagramRoads : MonoBehaviour
         yield return StartCoroutine(AddVoronoiPointsToScene());
         //yield return StartCoroutine(AddRoadsFromEdgeData());
         yield return StartCoroutine(AddRoadsLineRenderers());
+
+
+        if(projectOnTerrain)
+            yield return StartCoroutine(ProjectRoadPointsOnTerrain());
     }
 
     private List<Vector2f> CreateRandomPoint()
@@ -81,6 +89,7 @@ public class VoronoiDiagramRoads : MonoBehaviour
         return points;
     }
 
+    // Add random points to scene (red points)
     private IEnumerator AddPointsToScene(List<Vector2f> points)
     {
         foreach (Vector2f p in points)
@@ -91,6 +100,7 @@ public class VoronoiDiagramRoads : MonoBehaviour
         }
     }
 
+    // Add Voronoi Points To Scene (blue)
     private IEnumerator AddVoronoiPointsToScene()
     {
         foreach (KeyValuePair<Vector2f, Site> kv in sites)
@@ -115,6 +125,7 @@ public class VoronoiDiagramRoads : MonoBehaviour
         }
     }
 
+    // Add Roads using Edge ( old version )
     IEnumerator AddRoads()
     {
         foreach (Edge edge in edges)
@@ -133,6 +144,7 @@ public class VoronoiDiagramRoads : MonoBehaviour
         }
     }
 
+    // Return the number of road points (with duplicates)
     int FindNumberOfRoadPoints()
     {
         int numberOfPoints = 0;
@@ -155,12 +167,11 @@ public class VoronoiDiagramRoads : MonoBehaviour
         return numberOfPoints;
     }
 
+    // Add Road points (purple and green)
     IEnumerator AddRoadPoints()
     {
         roadPoints = new GameObject[FindNumberOfRoadPoints() * 2];
-
-        Debug.Log(FindNumberOfRoadPoints());
-        Debug.Log(edgesData.Length);
+        
         int counter = 0;
 
         for (int i = 0; i < roadPoints.Length / (voronoiEdgeSubdivions * 2); i++)
@@ -168,7 +179,7 @@ public class VoronoiDiagramRoads : MonoBehaviour
             if (edgesData[i].GetSegmentsCount() == 1)
             {
                 roadPoints[i * 2] = (GameObject)Instantiate(roadPoint, edgesData[i].GetInitialPoint(), Quaternion.identity);
-                roadPoints[(i * 2)+ 1] = (GameObject)Instantiate(roadPoint, edgesData[i].GetFinalPoint(), Quaternion.identity);
+                roadPoints[(i * 2) + 1] = (GameObject)Instantiate(roadPoint, edgesData[i].GetFinalPoint(), Quaternion.identity);
             }
             else
             {
@@ -177,17 +188,6 @@ public class VoronoiDiagramRoads : MonoBehaviour
                     roadPoints[counter] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetInitialPoint(), Quaternion.identity);
                     roadPoints[counter + 1] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetFinalPoint(), Quaternion.identity);
                     counter += 2;
-
-                    //if (j == 0)
-                    //{
-                    //    roadPoints[(i * 2) + j] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetInitialPoint(), Quaternion.identity);
-                    //    roadPoints[(i * 2 + 1) + j] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetFinalPoint(), Quaternion.identity);
-                    //}
-                    //else
-                    //{
-                    //    roadPoints[(i * 2) + j + 1] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetInitialPoint(), Quaternion.identity);
-                    //    roadPoints[(i * 2 + 1) + j + 1] = (GameObject)Instantiate(roadPoint, edgesData[i].m_edgeSegments[j].GetFinalPoint(), Quaternion.identity);
-                    //}
                 }
             }
         }
@@ -195,13 +195,47 @@ public class VoronoiDiagramRoads : MonoBehaviour
         yield return new WaitForSeconds(yieldDuration);
     }
 
+    // Project road points on the terrain
+    IEnumerator ProjectRoadPointsOnTerrain()
+    {
+        //GameObject[] points = GameObject.FindGameObjectsWithTag("VoronoiPoint");
+
+        //foreach (GameObject po in points)
+        //{
+        //    RaycastHit hit;
+        //    if (Physics.Raycast(po.transform.position, Vector3.down, out hit, 300))
+        //    {
+        //        if (hit.transform.tag == "Terrain")
+        //        {
+        //            Debug.Log(hit.point);
+        //            po.transform.position = hit.point;
+        //        }
+        //    }
+        //}
+        for (int i = 0; i < roadPoints.Length; i++)
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(roadPoints[i].transform.position, Vector3.down, out hit, 300))
+            {
+                if (hit.transform.tag == "Terrain")
+                {
+                    Debug.Log(hit.point);
+                    roadPoints[i].transform.position = hit.point;
+                }
+            }
+            yield return new WaitForSeconds(yieldDuration);
+        }
+        yield return new WaitForSeconds(yieldDuration);
+    }
+
+    // Add roads ( line renderers ) connecting road points
+    // Enables real time modification
     IEnumerator AddRoadsLineRenderers()
     {
         yield return AddRoadPoints();
-        
+
         for (int i = 0; i < roadPoints.Length; i+=2)
         {
-            Debug.Log(i);
             GameObject road = (GameObject)Instantiate(voronoiRoadWithScript, roadPoints[i].transform.position, Quaternion.identity);
             road.GetComponent<SetRoadNextPoint>().SetInitialPoint(roadPoints[i]);
             road.GetComponent<SetRoadNextPoint>().SetNextPoint(roadPoints[i + 1]);
@@ -210,6 +244,8 @@ public class VoronoiDiagramRoads : MonoBehaviour
         }
     }
 
+    // Add roads directly from EdgeData
+    // No real time modification
     IEnumerator AddRoadsFromEdgeData()
     {
         for (int i = 0; i < edgesData.Length; i++)
@@ -236,6 +272,7 @@ public class VoronoiDiagramRoads : MonoBehaviour
         }
     }
 
+    // Copy Edge to EdgeData (enables subdivision) 
     void CopyEdgeToEdgeData()
     {
         int edgesDataSize = 0;
