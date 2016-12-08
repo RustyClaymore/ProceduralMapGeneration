@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[ExecuteInEditMode]
 public class SetRoadNextPoint : MonoBehaviour {
 
     public GameObject initialPoint;

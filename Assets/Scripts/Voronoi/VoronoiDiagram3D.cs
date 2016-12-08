@@ -18,6 +18,9 @@ public class VoronoiDiagram3D : MonoBehaviour
     public GameObject siteCenterPrefab;
     public GameObject voronoiPointPrefab;
 
+    public bool useGridLayout;
+    public float gridPointsSeparationDistance;
+
     // This is where we will store the resulting data
     private Dictionary<Vector2f, Site> sites;
     private List<Edge> edges;
@@ -25,7 +28,15 @@ public class VoronoiDiagram3D : MonoBehaviour
     void Start()
     {
         // Create your sites (lets call that the center of your polygons)
-        List<Vector2f> points = CreateRandomPoint();
+        List<Vector2f> points;
+        if (useGridLayout)
+        {
+            points = CreateGridPoints();
+        }
+        else
+        {
+            points = CreateRandomPoint();
+        }
         AddPointsToScene(points);
 
         // Create the bounds of the voronoi diagram
@@ -56,6 +67,20 @@ public class VoronoiDiagram3D : MonoBehaviour
         for (int i = 0; i < polygonNumber; i++)
         {
             points.Add(new Vector2f(Random.Range(minBoundPos, maxBoundPos), Random.Range(minBoundPos, maxBoundPos)));
+        }
+
+        return points;
+    }
+
+    private List<Vector2f> CreateGridPoints()
+    {
+        List<Vector2f> points = new List<Vector2f>();
+        for (float i = minBoundPos; i < maxBoundPos; i += ((Mathf.Abs(minBoundPos) + maxBoundPos)/2f)/polygonNumber*10)
+        {
+            for (float j = minBoundPos; j < maxBoundPos; j += ((Mathf.Abs(minBoundPos) + maxBoundPos) / 2f)/polygonNumber*10)
+            {
+                points.Add(new Vector2f(i + Random.Range(-gridPointsSeparationDistance, gridPointsSeparationDistance), j + Random.Range(-gridPointsSeparationDistance, gridPointsSeparationDistance)));
+            }
         }
 
         return points;

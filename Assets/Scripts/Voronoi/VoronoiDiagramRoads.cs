@@ -4,6 +4,7 @@ using System.Collections;
 
 using csDelaunay;
 
+[ExecuteInEditMode]
 public class VoronoiDiagramRoads : MonoBehaviour
 {
     // ********************************** PUBLICS *****************************
@@ -13,6 +14,9 @@ public class VoronoiDiagramRoads : MonoBehaviour
 
     public float minBoundPos;
     public float maxBoundPos;
+
+    public bool useGridLayout;
+    public float gridPointsSeparationDistance;
 
     public int lloydRelaxationCount;
 
@@ -42,11 +46,26 @@ public class VoronoiDiagramRoads : MonoBehaviour
     private EdgeData[] edgesData;
 
     private GameObject[] roadPoints;
-
+    
     IEnumerator Start()
     {
+        if (!Application.isEditor)
+            yield return new WaitForSeconds(0);
+        yield return GenerateRoads();
+    }
+
+    public IEnumerator GenerateRoads()
+    {
         // Create your sites (lets call that the center of your polygons)
-        List<Vector2f> points = CreateRandomPoint();
+        List<Vector2f> points;
+        if (useGridLayout)
+        {
+            points = CreateGridPoints();
+        }
+        else
+        {
+            points = CreateRandomPoint();
+        }
         yield return StartCoroutine(AddPointsToScene(points));
 
         // Create the bounds of the voronoi diagram
@@ -69,10 +88,10 @@ public class VoronoiDiagramRoads : MonoBehaviour
 
         yield return StartCoroutine(AddVoronoiPointsToScene());
         //yield return StartCoroutine(AddRoadsFromEdgeData());
-        yield return StartCoroutine(AddRoadsLineRenderers());
+        StartCoroutine(AddRoadsLineRenderers());
 
 
-        if(projectOnTerrain)
+        if (projectOnTerrain)
             yield return StartCoroutine(ProjectRoadPointsOnTerrain());
     }
 
@@ -84,6 +103,20 @@ public class VoronoiDiagramRoads : MonoBehaviour
         for (int i = 0; i < polygonNumber; i++)
         {
             points.Add(new Vector2f(Random.Range(minBoundPos, maxBoundPos), Random.Range(minBoundPos, maxBoundPos)));
+        }
+
+        return points;
+    }
+
+    private List<Vector2f> CreateGridPoints()
+    {
+        List<Vector2f> points = new List<Vector2f>();
+        for (float i = minBoundPos; i < maxBoundPos; i += ((Mathf.Abs(minBoundPos) + maxBoundPos) / 2f) / polygonNumber * 10)
+        {
+            for (float j = minBoundPos; j < maxBoundPos; j += ((Mathf.Abs(minBoundPos) + maxBoundPos) / 2f) / polygonNumber * 10)
+            {
+                points.Add(new Vector2f(i + Random.Range(-gridPointsSeparationDistance, gridPointsSeparationDistance), j + Random.Range(-gridPointsSeparationDistance, gridPointsSeparationDistance)));
+            }
         }
 
         return points;
@@ -223,7 +256,7 @@ public class VoronoiDiagramRoads : MonoBehaviour
                     roadPoints[i].transform.position = hit.point;
                 }
             }
-            yield return new WaitForSeconds(yieldDuration);
+            //yield return new WaitForSeconds(yieldDuration);
         }
         yield return new WaitForSeconds(yieldDuration);
     }
@@ -240,7 +273,7 @@ public class VoronoiDiagramRoads : MonoBehaviour
             road.GetComponent<SetRoadNextPoint>().SetInitialPoint(roadPoints[i]);
             road.GetComponent<SetRoadNextPoint>().SetNextPoint(roadPoints[i + 1]);
 
-            yield return new WaitForSeconds(yieldDuration);
+            //yield return new WaitForSeconds(yieldDuration);
         }
     }
 
