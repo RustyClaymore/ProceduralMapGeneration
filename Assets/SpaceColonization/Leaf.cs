@@ -5,6 +5,7 @@ using UnityEngine;
 public class Leaf {
 
     public Vector3 position;
+    public bool reached = false;
 	
     public Leaf(float posX, float posY, float posZ)
     {
