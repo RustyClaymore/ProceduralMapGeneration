@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class MapDisplay : MonoBehaviour {
@@ -6,6 +6,8 @@ public class MapDisplay : MonoBehaviour {
     public Renderer textureRenderer;
     public MeshFilter meshFilter;
     public MeshRenderer meshRenderer;
+
+    public Terrain terrain;
 
     public void DrawTexture(Texture2D texture)
     {

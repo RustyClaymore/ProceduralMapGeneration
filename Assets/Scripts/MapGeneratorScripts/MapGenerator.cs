@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class MapGenerator : MonoBehaviour {
@@ -55,6 +55,7 @@ public class MapGenerator : MonoBehaviour {
             }
         }
         MapDisplay mapDisplay = FindObjectOfType<MapDisplay>();
+
         if (drawMode == DrawMode.NoiseMap)
             mapDisplay.DrawTexture(TextureGenerator.TextureFromHeightMap(noiseMap));
         else if (drawMode == DrawMode.ColorMap)

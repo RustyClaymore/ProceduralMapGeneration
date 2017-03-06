@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
 using csDelaunay;
@@ -24,6 +24,10 @@ public class VoronoiDiagram3D : MonoBehaviour
     // This is where we will store the resulting data
     private Dictionary<Vector2f, Site> sites;
     private List<Edge> edges;
+
+    // List of parcels (sites)
+    private List<Parcel> parcels;
+    public GameObject lineRendererSubParcels;
 
     void Start()
     {
@@ -55,8 +59,72 @@ public class VoronoiDiagram3D : MonoBehaviour
         // Now retreive the edges from it, and the new sites position if you used lloyd relaxtion
         sites = voronoi.SitesIndexedByLocation;
         edges = voronoi.Edges;
+        
+        parcels = new List<Parcel>();
+        CreateParcelsFromSites(sites);
+
+        int i = 0;
+        foreach(KeyValuePair<Vector2f, Site> site in sites)
+        {
+            print("site edges : " + site.Value.Edges.Count);
+            print("parcel segments : " + parcels[i].parcelSegments.Count);
+            i++;
+        }
 
         AddVoronoiPointsToScene();
+
+        foreach (Parcel parcel in parcels)
+        {
+            RecursiveParceller(parcel, 2);
+        }
+    }
+
+    private void CreateParcelsFromSites(Dictionary<Vector2f, Site> vSites)
+    {
+        foreach(KeyValuePair<Vector2f, Site> vs in vSites)
+        {
+            Parcel parcel = new Parcel("");
+            foreach (Edge edge in vs.Value.Edges)
+            {
+                //// if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
+                if (edge.ClippedEnds == null) continue;
+
+                Vector3 leftPoint = new Vector3(edge.ClippedEnds[LR.LEFT].x, 0, edge.ClippedEnds[LR.LEFT].y);
+                Vector3 rightPoint = new Vector3(edge.ClippedEnds[LR.RIGHT].x, 0, edge.ClippedEnds[LR.RIGHT].y);
+                parcel.parcelPoints.Add(leftPoint);
+
+                Segment seg = new Segment(leftPoint, rightPoint);
+                parcel.parcelSegments.Add(seg);
+            }
+
+            parcel.UpdateParcelPointsFromSegments();
+            parcels.Add(parcel);
+        }
+    }
+
+    private void RecursiveParceller(Parcel parcel, int iter)
+    {
+        List<Parcel> subParcels = new List<Parcel>();
+        subParcels = UseParceller(parcel);
+
+        if (iter > 0)
+        {
+            for (int i = 0; i < subParcels.Count; i++)
+            {
+                RecursiveParceller(subParcels[i], iter - 1);
+            }
+        }
+    }
+
+    List<Parcel> UseParceller(Parcel parcel)
+    {
+        Parceller parceller = new Parceller(parcel);
+        parceller.SubdivideParcel();
+
+        ShowConvexHull(parcel);
+        //ShowRect(parceller.parcel.obb.obbRect);
+
+        return parcel.subParcels;
     }
 
     private List<Vector2f> CreateRandomPoint()
@@ -99,18 +167,29 @@ public class VoronoiDiagram3D : MonoBehaviour
         foreach (KeyValuePair<Vector2f, Site> kv in sites)
         {
             Instantiate(siteCenterPrefab, new Vector3(kv.Key.x, 0, kv.Key.y), Quaternion.identity);
+
+            foreach(Edge edge in kv.Value.Edges)
+            {
+                // if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
+                if (edge.ClippedEnds == null) continue;
+
+                Vector3 leftPoint = new Vector3(edge.ClippedEnds[LR.LEFT].x, 0, edge.ClippedEnds[LR.LEFT].y);
+                Vector3 rightPoint = new Vector3(edge.ClippedEnds[LR.RIGHT].x, 0, edge.ClippedEnds[LR.RIGHT].y);
+
+                Instantiate(voronoiPointPrefab, leftPoint, Quaternion.identity);
+            }
         }
 
-        foreach (Edge edge in edges)
-        {
-            // if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
-            if (edge.ClippedEnds == null) continue;
+        //foreach (Edge edge in edges)
+        //{
+        //    // if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
+        //    if (edge.ClippedEnds == null) continue;
 
-            Vector3 leftPoint = new Vector3(edge.ClippedEnds[LR.LEFT].x, 0, edge.ClippedEnds[LR.LEFT].y);
-            Vector3 rightPoint = new Vector3(edge.ClippedEnds[LR.RIGHT].x, 0, edge.ClippedEnds[LR.RIGHT].y);
+        //    Vector3 leftPoint = new Vector3(edge.ClippedEnds[LR.LEFT].x, 0, edge.ClippedEnds[LR.LEFT].y);
+        //    Vector3 rightPoint = new Vector3(edge.ClippedEnds[LR.RIGHT].x, 0, edge.ClippedEnds[LR.RIGHT].y);
 
-            Instantiate(voronoiPointPrefab, leftPoint, Quaternion.identity);
-        }
+        //    Instantiate(voronoiPointPrefab, leftPoint, Quaternion.identity);
+        //}
     }
 
     void OnDrawGizmosSelected()
@@ -130,16 +209,51 @@ public class VoronoiDiagram3D : MonoBehaviour
         //    previousPos = sitePos;
         //}
 
-        foreach (Edge edge in edges)
+        //foreach (Edge edge in edges)
+        //{
+        //    // if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
+        //    if (edge.ClippedEnds == null) continue;
+
+        //    Vector3 leftPoint = new Vector3(edge.ClippedEnds[LR.LEFT].x, 0, edge.ClippedEnds[LR.LEFT].y);
+        //    Vector3 rightPoint = new Vector3(edge.ClippedEnds[LR.RIGHT].x, 0, edge.ClippedEnds[LR.RIGHT].y);
+
+        //    Gizmos.color = Color.green;
+        //    Gizmos.DrawLine(leftPoint, rightPoint);
+        //}
+
+        //for (int i = 0; i < parcels.Count/2; i++)
+        //{
+        //    foreach(Segment seg in parcels[i].parcelSegments)
+        foreach(Parcel parcel in parcels)
         {
-            // if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
-            if (edge.ClippedEnds == null) continue;
+            foreach(Segment seg in parcel.parcelSegments)
+            {
+                Vector3 leftPoint = seg.startPos;
+                Vector3 rightPoint = seg.finalPos;
 
-            Vector3 leftPoint = new Vector3(edge.ClippedEnds[LR.LEFT].x, 0, edge.ClippedEnds[LR.LEFT].y);
-            Vector3 rightPoint = new Vector3(edge.ClippedEnds[LR.RIGHT].x, 0, edge.ClippedEnds[LR.RIGHT].y);
+                Gizmos.color = Color.green;
+                Gizmos.DrawLine(leftPoint, rightPoint);
+            }
+        }
+    }
 
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(leftPoint, rightPoint);
+    void ShowConvexHull(Parcel parcel)
+    {
+        GameObject go = new GameObject("ConvexHullHolder");
+        for (int i = 0; i < parcel.obb.convexHullPoints.Count; i++)
+        {
+            GameObject line = Instantiate(lineRendererSubParcels);
+            line.transform.parent = go.transform;
+            if (i != parcel.obb.convexHullPoints.Count - 1)
+            {
+                line.GetComponent<LineRenderer>().SetPosition(0, parcel.obb.convexHullPoints[i]);
+                line.GetComponent<LineRenderer>().SetPosition(1, parcel.obb.convexHullPoints[i + 1]);
+            }
+            else
+            {
+                line.GetComponent<LineRenderer>().SetPosition(0, parcel.obb.convexHullPoints[i]);
+                line.GetComponent<LineRenderer>().SetPosition(1, parcel.obb.convexHullPoints[0]);
+            }
         }
     }
 }

@@ -6,6 +6,9 @@ using UnityEditor;
 public class DrawLines : MonoBehaviour
 {
     // ---------PUBLICS------------ 
+
+    public TerrainSurfaceSmoothing surfaceSmoothingScript;
+
     public int seed;
 
     [Header("Road Points Parameters")]
@@ -43,6 +46,7 @@ public class DrawLines : MonoBehaviour
 
     [Header("Tests")]
     public bool multipleCirclesTest = false;
+    public bool flattenTerrainTest = false;
 
     // ---------PRIVATES------------ 
     private Vector3[] roadPoints;
@@ -167,6 +171,9 @@ public class DrawLines : MonoBehaviour
                         Debug.Log(hit.point);
                         roadPoints[i] = hit.point;
                         roadPointsSpheres[i - 1].transform.position = hit.point;
+
+                        if(flattenTerrainTest)
+                            surfaceSmoothingScript.SmoothTerrainSurfaceAtPoint(hit.point, 10, 10);
                     }
                 }
                 

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class SphereMeshGenerator {
@@ -115,7 +115,6 @@ public class SphereMeshGenerator {
         mesh.triangles = triangles;
 
         mesh.RecalculateBounds();
-        ;
 
         return mesh;
     }
