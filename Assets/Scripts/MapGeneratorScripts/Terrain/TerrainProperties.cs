@@ -6,33 +6,52 @@
 */
 
 using UnityEngine;
+using System.IO;
 
 [System.Serializable]
 public class TerrainProperties {
 
     #region Variables
+    // Json File variables
+    private string jsonString;
 
     // Terrain data 
+    [SerializeField]
     private int width;
+    [SerializeField]
     private int maxHeight;
 
+    [SerializeField]
+    private int heightMapWidth;
+
+    [SerializeField]
     private static TerrainProperties instance = null;
-    private static readonly object plock = new object();
 
     // Noise data 
+    [SerializeField]
     private int seed;
+    [SerializeField]
     private float scale;
+    [SerializeField]
     private int octaves;
+    [SerializeField]
     private float persistance;
+    [SerializeField]
     private float lacunarity;
+    [SerializeField]
     private Vector2 offset;
 
+    [SerializeField]
     private bool smoothTerrainHeight;
+    [SerializeField]
     private AnimationCurve terrainHeightCurve;
 
-    private bool useFaloffMap;
-    private float faloffStrength;
-    private float faloffSpeed;
+    [SerializeField]
+    private bool useFalloffMap;
+    [SerializeField]
+    private float falloffStrength;
+    [SerializeField]
+    private float falloffSpeed;
 
     #endregion
 
@@ -42,14 +61,21 @@ public class TerrainProperties {
         MaxHeight = 600;
     }
 
-    public string SaveToString()
+    public string SaveToString(string path)
     {
-        Debug.Log(JsonUtility.ToJson(this));
+        jsonString = JsonUtility.ToJson(this);
+        File.WriteAllText(path, jsonString);
+
         return JsonUtility.ToJson(this);        
     }
 
-    public static TerrainProperties CreateFromJSON(string jsonString)
+    public TerrainProperties CreateFromJSON(string path)
     {
+        string jsonString = File.ReadAllText(path);
+        TerrainProperties tp = new TerrainProperties();
+        tp = JsonUtility.FromJson<TerrainProperties>(jsonString);
+        CopyData(tp);
+
         return JsonUtility.FromJson<TerrainProperties>(jsonString);
     }
 
@@ -57,15 +83,37 @@ public class TerrainProperties {
     {
         get
         {
-            lock (plock)
+            if (instance == null)
             {
-                if (instance == null)
-                {
-                    instance = new TerrainProperties();
-                }
-                return instance;
+                instance = new TerrainProperties();
             }
+            return instance;
         }
+    }
+
+    private void CopyData(TerrainProperties tp)
+    {
+        // Terrain size data
+        Instance.Width = tp.Width;
+        Instance.MaxHeight = tp.MaxHeight;
+
+        // Height Map size data
+        Instance.HeightMapWidth = tp.HeightMapWidth;
+
+        // Terrain noise map data
+        Instance.Scale = tp.Scale;
+        Instance.Octaves = tp.Octaves;
+        Instance.Seed = tp.Seed;
+        Instance.Persistance = tp.Persistance;
+        Instance.Lacunarity = tp.Lacunarity;
+        Instance.Offset = tp.Offset;
+
+        Instance.SmoothTerrainHeight = tp.SmoothTerrainHeight;
+        Instance.TerrainHeightCurve = tp.TerrainHeightCurve;
+
+        Instance.UseFalloffMap = tp.UseFalloffMap;
+        Instance.FalloffStrength = tp.FalloffStrength;
+        Instance.falloffSpeed = tp.FalloffSpeed;
     }
 
     public int Width
@@ -185,16 +233,16 @@ public class TerrainProperties {
         }
     }
 
-    public bool UseFaloffMap
+    public bool UseFalloffMap
     {
         get
         {
-            return useFaloffMap;
+            return useFalloffMap;
         }
 
         set
         {
-            useFaloffMap = value;
+            useFalloffMap = value;
         }
     }
 
@@ -211,29 +259,42 @@ public class TerrainProperties {
         }
     }
 
-    public float FaloffStrength
+    public float FalloffStrength
     {
         get
         {
-            return faloffStrength;
+            return falloffStrength;
         }
 
         set
         {
-            faloffStrength = value;
+            falloffStrength = value;
         }
     }
 
-    public float FaloffSpeed
+    public float FalloffSpeed
     {
         get
         {
-            return faloffSpeed;
+            return falloffSpeed;
         }
 
         set
         {
-            faloffSpeed = value;
+            falloffSpeed = value;
+        }
+    }
+
+    public int HeightMapWidth
+    {
+        get
+        {
+            return heightMapWidth;
+        }
+
+        set
+        {
+            heightMapWidth = value;
         }
     }
 }

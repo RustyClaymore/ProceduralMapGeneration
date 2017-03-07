@@ -34,8 +34,8 @@ public class FalloffMapGenerator {
 
     static float Evaluate(float value)
     {
-        float a = TerrainProperties.Instance.FaloffStrength;
-        float b = TerrainProperties.Instance.FaloffSpeed;
+        float a = TerrainProperties.Instance.FalloffStrength;
+        float b = TerrainProperties.Instance.FalloffSpeed;
 
         return Mathf.Pow(value, a) / (Mathf.Pow(value, a) + Mathf.Pow(b - b * value, a));
     }

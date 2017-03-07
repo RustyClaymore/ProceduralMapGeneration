@@ -11,12 +11,11 @@ using UnityEditor;
 public class TerrainGeneratorEditor : EditorWindow {
 
     private TerrainGenerator terrainGen;
-
-    private TerrainProperties terrainProperties = TerrainProperties.Instance;
-
+    
     private int terrainWidth = 513;
-    //private int terrainLength = 500;
     private int terrainMaxHeight = 600;
+
+    private int heightMapWidth = 513;
 
     private float scale;
 
@@ -32,12 +31,15 @@ public class TerrainGeneratorEditor : EditorWindow {
     private AnimationCurve terrainHeightCurve;
     
     // FaloffProperties
-    private bool useFaloffMap;
-    private float faloffStrength;
-    private float faloffSpeed;
+    private bool useFalloffMap;
+    private float falloffStrength;
+    private float falloffSpeed;
 
     // Image for the editor window
     private Texture2D terrainGenerationLogo = null;
+
+    // Custom window enabled check
+    private bool isEnabled = false;
 
     [MenuItem("City Generator/Terrain Generator")]
     static void Init()
@@ -49,6 +51,16 @@ public class TerrainGeneratorEditor : EditorWindow {
     {
         terrainGenerationLogo = (Texture2D)AssetDatabase.LoadAssetAtPath("Assets/Editor/EditorImages/TerrainGenerationLogo.png", typeof(Texture2D));
         terrainHeightCurve = new AnimationCurve();
+
+        LoadTerrainFromJson();
+
+        isEnabled = true;
+    }
+    
+    private void OnDisable()
+    {
+        isEnabled = false;
+        SaveTerrainToJson();
     }
 
     void OnGUI()
@@ -62,6 +74,20 @@ public class TerrainGeneratorEditor : EditorWindow {
         {
             GenerateTerrain();
         }
+
+        GUILayout.BeginHorizontal();
+        // Save Terrain Properties to Json File
+        if(GUILayout.Button("Save Terrain to JSON"))
+        {
+            SaveTerrainToJson();
+        }
+
+        // Load Terrain Properties from Json File
+        if (GUILayout.Button("Load Terrain from JSON"))
+        {
+            LoadTerrainFromJson();   
+        }
+        GUILayout.EndHorizontal();
     }
 
     void GenerateTerrain()
@@ -72,26 +98,73 @@ public class TerrainGeneratorEditor : EditorWindow {
         terrainGen.GenerateUnityTerrain();
     }
 
+    void SaveTerrainToJson()
+    {
+        string jsonPath = Application.streamingAssetsPath + "/terrainJson.json";
+        SaveTerrainProperties();
+        TerrainProperties.Instance.SaveToString(jsonPath);
+    }
+
+    void LoadTerrainFromJson()
+    {
+        string jsonPath = Application.streamingAssetsPath + "/terrainJson.json";
+        TerrainProperties.Instance.CreateFromJSON(jsonPath);
+        LoadTerrainProperties();
+
+        if (isEnabled)
+        {
+            GenerateTerrain();
+        }
+    }
+
     void SaveTerrainProperties()
     {
         // Terrain size data
-        terrainProperties.Width = terrainWidth;
-        terrainProperties.MaxHeight = terrainMaxHeight;
+        TerrainProperties.Instance.Width = terrainWidth;
+        TerrainProperties.Instance.MaxHeight = terrainMaxHeight;
+
+        // Height Map size data
+        TerrainProperties.Instance.HeightMapWidth = heightMapWidth;
 
         // Terrain noise map data
-        terrainProperties.Scale = scale;
-        terrainProperties.Octaves = octaves;
-        terrainProperties.Seed = seed;
-        terrainProperties.Persistance = persistance;
-        terrainProperties.Lacunarity = lacunarity;
-        terrainProperties.Offset = offset;
+        TerrainProperties.Instance.Scale = scale;
+        TerrainProperties.Instance.Octaves = octaves;
+        TerrainProperties.Instance.Seed = seed;
+        TerrainProperties.Instance.Persistance = persistance;
+        TerrainProperties.Instance.Lacunarity = lacunarity;
+        TerrainProperties.Instance.Offset = offset;
 
-        terrainProperties.SmoothTerrainHeight = smoothTerrainHeight;
-        terrainProperties.TerrainHeightCurve = terrainHeightCurve;
+        TerrainProperties.Instance.SmoothTerrainHeight = smoothTerrainHeight;
+        TerrainProperties.Instance.TerrainHeightCurve = terrainHeightCurve;
 
-        terrainProperties.UseFaloffMap = useFaloffMap;
-        terrainProperties.FaloffStrength = faloffStrength;
-        terrainProperties.FaloffSpeed = faloffSpeed;
+        TerrainProperties.Instance.UseFalloffMap = useFalloffMap;
+        TerrainProperties.Instance.FalloffStrength = falloffStrength;
+        TerrainProperties.Instance.FalloffSpeed = falloffSpeed;
+    }
+
+    void LoadTerrainProperties()
+    {
+        // Terrain size data
+        terrainWidth = TerrainProperties.Instance.Width;
+        terrainMaxHeight = TerrainProperties.Instance.MaxHeight;
+
+        // Heightmap size data
+        heightMapWidth = TerrainProperties.Instance.HeightMapWidth;
+
+        // Terrain noise map data
+        scale = TerrainProperties.Instance.Scale;
+        octaves = TerrainProperties.Instance.Octaves;
+        seed = TerrainProperties.Instance.Seed;
+        persistance = TerrainProperties.Instance.Persistance;
+        lacunarity = TerrainProperties.Instance.Lacunarity;
+        offset = TerrainProperties.Instance.Offset;
+
+        smoothTerrainHeight = TerrainProperties.Instance.SmoothTerrainHeight;
+        terrainHeightCurve = TerrainProperties.Instance.TerrainHeightCurve;
+
+        useFalloffMap = TerrainProperties.Instance.UseFalloffMap;
+        falloffStrength = TerrainProperties.Instance.FalloffStrength;
+        falloffSpeed = TerrainProperties.Instance.FalloffSpeed;
     }
     
     void ShowLogoLabel()
@@ -113,11 +186,20 @@ public class TerrainGeneratorEditor : EditorWindow {
         string[] possibleWidthsString = new string[3];
         for (int i = 0; i < possibleWidths.Length; i++)
         {
-            possibleWidthsString[i] = possibleWidths[i].ToString();
+            possibleWidthsString[i] = (possibleWidths[i]-1).ToString();
         }
         terrainWidth = EditorGUILayout.IntPopup("Terrain Width:", terrainWidth, possibleWidthsString, possibleWidths);
 
         terrainMaxHeight = EditorGUILayout.IntSlider("Terrain MaxHeight:", terrainMaxHeight, 100, 600);
+
+        int[] possibleHeightMapWidths = new int[3];
+        possibleHeightMapWidths[0] = 513; possibleHeightMapWidths[1] = 1025; possibleHeightMapWidths[2] = 2049;
+        string[] possibleHeightMapWidthsString = new string[3];
+        for (int i = 0; i < possibleHeightMapWidths.Length; i++)
+        {
+            possibleHeightMapWidthsString[i] = (possibleHeightMapWidths[i] - 1).ToString();
+        }
+        heightMapWidth = EditorGUILayout.IntPopup("Heightmap Width:", heightMapWidth, possibleHeightMapWidthsString, possibleHeightMapWidths);
 
         EditorGUILayout.Separator();
         EditorGUILayout.LabelField("Terrain Height Map Properties");
@@ -132,28 +214,10 @@ public class TerrainGeneratorEditor : EditorWindow {
         smoothTerrainHeight = EditorGUILayout.Toggle("Smooth Terrain Height", smoothTerrainHeight);
         terrainHeightCurve = EditorGUILayout.CurveField("Terrain Height Curve:", terrainHeightCurve);
 
-        useFaloffMap = EditorGUILayout.Toggle("Use Faloff Map", useFaloffMap);
-        faloffStrength = EditorGUILayout.Slider("Faloff Strength", faloffStrength, 0, 10);
-        faloffSpeed = EditorGUILayout.Slider("Faloff Speed", faloffSpeed, 0, 10);
+        useFalloffMap = EditorGUILayout.Toggle("Use Falloff Map", useFalloffMap);
+        falloffStrength = EditorGUILayout.Slider("Falloff Strength", falloffStrength, 0, 10);
+        falloffSpeed = EditorGUILayout.Slider("Falloff Speed", falloffSpeed, 0, 10);
         
         EditorGUILayout.Separator();
     }
-
-    //public override void OnInspectorGUI()
-    //{
-    //    TerrainGenerator terGen = (TerrainGenerator)target;
-
-    //    if (DrawDefaultInspector())
-    //    {
-    //        if (terGen.autoUpdate)
-    //        {
-    //            terGen.GenerateUnityTerrain();
-    //        }
-    //    }
-
-    //    if (GUILayout.Button("Generate"))
-    //    {
-    //        terGen.GenerateUnityTerrain();
-    //    }
-    //}
 }
