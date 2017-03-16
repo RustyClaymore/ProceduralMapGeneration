@@ -53,6 +53,18 @@ public class TerrainProperties {
     [SerializeField]
     private float falloffSpeed;
 
+    [SerializeField]
+    private float sandLimit;
+    [SerializeField]
+    private float grassLimit;
+    [SerializeField]
+    private float stoneLimit;
+    [SerializeField]
+    private float snowLimit;
+
+    [SerializeField]
+    private float treesDensity;
+
     #endregion
 
     public TerrainProperties()
@@ -114,6 +126,11 @@ public class TerrainProperties {
         Instance.UseFalloffMap = tp.UseFalloffMap;
         Instance.FalloffStrength = tp.FalloffStrength;
         Instance.falloffSpeed = tp.FalloffSpeed;
+
+        Instance.SandLimit = tp.SandLimit;
+        Instance.GrassLimit = tp.GrassLimit;
+        Instance.StoneLimit = tp.StoneLimit;
+        Instance.SnowLimit = tp.SnowLimit;
     }
 
     public int Width
@@ -295,6 +312,71 @@ public class TerrainProperties {
         set
         {
             heightMapWidth = value;
+        }
+    }
+
+    public float SandLimit
+    {
+        get
+        {
+            return sandLimit;
+        }
+
+        set
+        {
+            sandLimit = value;
+        }
+    }
+
+    public float GrassLimit
+    {
+        get
+        {
+            return grassLimit;
+        }
+
+        set
+        {
+            grassLimit = value;
+        }
+    }
+
+    public float StoneLimit
+    {
+        get
+        {
+            return stoneLimit;
+        }
+
+        set
+        {
+            stoneLimit = value;
+        }
+    }
+
+    public float SnowLimit
+    {
+        get
+        {
+            return snowLimit;
+        }
+
+        set
+        {
+            snowLimit = value;
+        }
+    }
+
+    public float TreesDensity
+    {
+        get
+        {
+            return treesDensity;
+        }
+
+        set
+        {
+            treesDensity = value;
         }
     }
 }
