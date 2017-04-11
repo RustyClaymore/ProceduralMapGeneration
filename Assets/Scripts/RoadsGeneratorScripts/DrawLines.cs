@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -63,8 +63,8 @@ public class DrawLines : MonoBehaviour
         startingPointPos = startingPointPos + new Vector3(500, 0, 500);
         yield return StartCoroutine(GenerateRoads(startingPointPos));
 
-        startingPointPos = startingPointPos + new Vector3(-500, 0, -500);
-        yield return (GenerateRoads(startingPointPos));
+        //startingPointPos = startingPointPos + new Vector3(-500, 0, -500);
+        //yield return (GenerateRoads(startingPointPos));
     }
 
     public IEnumerator GenerateRoads(Vector3 startingPos)
@@ -77,7 +77,7 @@ public class DrawLines : MonoBehaviour
 
         if (multipleCirclesTest)
         {
-            for (int i = 1; i < 20; i++)
+            for (int i = 1; i < 4; i++)
             {
                 yield return StartCoroutine(GenerateRoadMapCircular(startingPos, circleRoadRadius * (i + 1)));
             }

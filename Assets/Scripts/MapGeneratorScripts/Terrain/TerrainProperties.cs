@@ -10,6 +10,11 @@ using System.IO;
 
 [System.Serializable]
 public class TerrainProperties {
+    public enum Noises
+    {
+        Perlin,
+        DiamondSquare
+    }
 
     #region Variables
     // Json File variables
@@ -29,7 +34,11 @@ public class TerrainProperties {
 
     // Noise data 
     [SerializeField]
+    private int noiseType;
+    [SerializeField]
     private int seed;
+
+
     [SerializeField]
     private float scale;
     [SerializeField]
@@ -377,6 +386,19 @@ public class TerrainProperties {
         set
         {
             treesDensity = value;
+        }
+    }
+
+    public int NoiseType
+    {
+        get
+        {
+            return noiseType;
+        }
+
+        set
+        {
+            noiseType = value;
         }
     }
 }

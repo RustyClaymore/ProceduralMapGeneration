@@ -1,21 +1,28 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(GenerateRoadTree))]
+[CustomEditor(typeof(RoadTreeGenerator))]
 public class SpaceConolizationGeneratorEditor : Editor {
-
+    
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
 
+        Repaint();
+
         GUILayout.Space(20);
 
-        GenerateRoadTree myscript = (GenerateRoadTree)target;
+        RoadTreeGenerator myscript = (RoadTreeGenerator)target;
         if (GUILayout.Button("Generate Roads"))
         {
             myscript.Generate();
         }
+    }
+
+    void OnSceneGUI()
+    {
+        Repaint();
     }
 }

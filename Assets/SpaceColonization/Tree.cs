@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -23,11 +23,16 @@ public class Tree {
 
         previousLeavesCount = leavesCount;
 
+        float randX;
+        float randY;
+        float randZ;
+
+        System.Random random = new System.Random();
         for (int i = 0; i < leavesCount; i++)
         {
-            float randX = Random.Range(treeParams.minVectorRange.x, treeParams.maxVectorRange.x);
-            float randY = Random.Range(treeParams.minVectorRange.y, treeParams.maxVectorRange.y);
-            float randZ = Random.Range(treeParams.minVectorRange.z, treeParams.maxVectorRange.z);
+            randX = Random.Range(treeParams.minVectorRange.x, treeParams.maxVectorRange.x);
+            randY = Random.Range(treeParams.minVectorRange.y, treeParams.maxVectorRange.y);
+            randZ = Random.Range(treeParams.minVectorRange.z, treeParams.maxVectorRange.z);
 
             leaves.Add(new Leaf(randX, randY, randZ));
         }
@@ -37,7 +42,9 @@ public class Tree {
         branches.Add(root);
         Branch current = root;
         bool found = false;
-        while (!found)
+
+        int iter = 0;
+        while (!found || iter < 50)
         {
             for (int i = 0; i < leaves.Count; i++)
             {
@@ -54,10 +61,11 @@ public class Tree {
                 current = nextBranch;
                 branches.Add(current);
             }
+            iter++;
         }
     }
 
-    public void Grow()
+    public bool Grow()
     {
         for (int i = 0; i < leaves.Count; i++)
         {
@@ -116,21 +124,18 @@ public class Tree {
             }
             branch.Reset();
         }
-        
-        Debug.Log(leaves.Count);
+        return true;
     }
 
     public void Show()
     {
         for (int i = 0; i < leaves.Count; i++)
         {
-            Debug.Log("drawing sphere");
             Gizmos.DrawSphere(leaves[i].position, 3);
         }
 
         for (int i = 0; i < branches.Count; i++)
         {
-            Debug.Log("drawing line");
             branches[i].Draw();
         }
     }

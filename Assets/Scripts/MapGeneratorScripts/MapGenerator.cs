@@ -35,7 +35,8 @@ public class MapGenerator : MonoBehaviour {
 
     public void GenerateMap()
     {
-        float[,] noiseMap = PerlinNoise.GenerateNoiseMap(mapChunkSize, mapChunkSize, seed, scale, octaves, persistance, lacunarity, offset);
+        //float[,] noiseMap = DiamondSquareNoise.GenerateNoiseMap(mapChunkSize, mapChunkSize, seed, scale, octaves, persistance, lacunarity, offset);
+        float[,] noiseMap = DiamondSquareNoise.GenerateNoiseMap(mapChunkSize, seed, lacunarity);
 
         Color[] colorMap = new Color[mapChunkSize * mapChunkSize];
 

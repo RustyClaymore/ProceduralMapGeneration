@@ -83,7 +83,7 @@ public class VoronoiDiagram3D : MonoBehaviour
     {
         foreach(KeyValuePair<Vector2f, Site> vs in vSites)
         {
-            Parcel parcel = new Parcel("");
+            Parcel parcel = new Parcel("", 0);
             foreach (Edge edge in vs.Value.Edges)
             {
                 //// if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
@@ -119,7 +119,7 @@ public class VoronoiDiagram3D : MonoBehaviour
     List<Parcel> UseParceller(Parcel parcel)
     {
         Parceller parceller = new Parceller(parcel);
-        parceller.SubdivideParcel();
+        parceller.SubdivideParcel(0);
 
         ShowConvexHull(parcel);
         //ShowRect(parceller.parcel.obb.obbRect);

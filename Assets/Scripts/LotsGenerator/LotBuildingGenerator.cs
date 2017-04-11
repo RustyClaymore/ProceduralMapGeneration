@@ -21,19 +21,17 @@ public class LotBuildingGenerator : MonoBehaviour {
 	{
 		buildingsCount = 0;
 
-		PlotsGeneration plotsGenerator = this.GetComponent<PlotsGeneration>();
+		ParcelGenerationController plotsGenerator = this.GetComponent<ParcelGenerationController>();
 
-		if (!plotsGenerator.centroidsHolder)
-		{
-			Debug.LogError("Couldn't find subplot centers! Generate roads and subplots first!");
-			return;
-		}
-
-        Transform[] transforms = new Transform[plotsGenerator.centroidsHolder.transform.childCount];
-        transforms = plotsGenerator.centroidsHolder.GetComponentsInChildren<Transform>();
-        for (int i = 0; i < transforms.Length; i++)
+        if(plotsGenerator.centroidsLocations.Count == 0)
         {
-            CreateBuilding(transforms[i].position);
+            Debug.LogError("Couldn't find subplot centers! Generate roads and subplots first!");
+            return;
+        }
+        
+        for (int i = 0; i < plotsGenerator.centroidsLocations.Count; i++)
+        {
+            CreateBuilding(plotsGenerator.centroidsLocations[i]);
         }
     }
 

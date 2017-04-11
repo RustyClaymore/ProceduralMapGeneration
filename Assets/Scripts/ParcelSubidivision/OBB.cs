@@ -65,6 +65,9 @@ public class OBB
     // Long live the square algorithm (LLTS)
     public Rectangle FindObbLTTS(Parcel parcel)
     {
+        convexHullPoints = new List<Vector3>();
+        convexHullSegments = new List<Segment>();
+
         FindConvexHull(parcel);
 
         if (convexHullPoints.Count < 3)
@@ -117,12 +120,12 @@ public class OBB
             {
                 minBox = rect;
                 minAngle = angle;
-
-                parcel.topPosMax = RotateToXAxis(rotatedTopMostPoint, -angle);
-                parcel.botPosMax = RotateToXAxis(rotatedBotMostPoint, -angle);
-                parcel.rightPosMax = RotateToXAxis(rotatedRightMostPoint, -angle);
-                parcel.leftPosMax = RotateToXAxis(rotatedLeftMostPoint, -angle);
             }
+
+            parcel.topPosMax = RotateToXAxis(rotatedTopMostPoint, -angle);
+            parcel.botPosMax = RotateToXAxis(rotatedBotMostPoint, -angle);
+            parcel.rightPosMax = RotateToXAxis(rotatedRightMostPoint, -angle);
+            parcel.leftPosMax = RotateToXAxis(rotatedLeftMostPoint, -angle);
         }
 
         // rotate axis aligned box back
@@ -142,7 +145,7 @@ public class OBB
     private void FindConvexHull(Parcel parcel)
     {
         int n = parcel.parcelPoints.Count;
-        if (n < 3)
+        if (n < 4)
             return;
 
         // Initialize result
@@ -166,7 +169,7 @@ public class OBB
         // until reach the start point again
         int p = l;
         int q;
-		
+
         do
         {
             // Search for a point 'q' such that orientation(p, i, q) is
@@ -174,7 +177,7 @@ public class OBB
             q = (p + 1) % n;
             for (int i = 0; i < n; i++)
                 if (orientation(parcel.parcelPoints[p], parcel.parcelPoints[i], parcel.parcelPoints[q]) == 2)
-					q = i;
+                    q = i;
 
             next[p] = q; // Add q to result as a next point of p
             p = q; // Set p as q for next iteration
@@ -183,23 +186,14 @@ public class OBB
 
         for (int i = 0; i < n; i++)
         {
-            if (next[i] != -1)
-            {
-                convexHullPoints.Add(parcel.parcelPoints[i]);
-            }
+            convexHullPoints.Add(parcel.parcelPoints[i % n]);
         }
 
         for (int i = 0; i < parcel.obb.convexHullPoints.Count; i++)
         {
             Segment seg;
-            if (i != parcel.obb.convexHullPoints.Count - 1)
-            {
-                seg = new Segment(parcel.obb.convexHullPoints[i], parcel.obb.convexHullPoints[i + 1]);
-            }
-            else
-            {
-                seg = new Segment(parcel.obb.convexHullPoints[i], parcel.obb.convexHullPoints[0]);
-            }
+
+            seg = new Segment(parcel.obb.convexHullPoints[i], parcel.obb.convexHullPoints[(i + 1) % parcel.obb.convexHullPoints.Count]);
             convexHullSegments.Add(seg);
         }
     }

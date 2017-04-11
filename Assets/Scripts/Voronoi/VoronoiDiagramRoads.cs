@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 
@@ -270,8 +270,8 @@ public class VoronoiDiagramRoads : MonoBehaviour
         for (int i = 0; i < roadPoints.Length; i+=2)
         {
             GameObject road = (GameObject)Instantiate(voronoiRoadWithScript, roadPoints[i].transform.position, Quaternion.identity);
-            road.GetComponent<SetRoadNextPoint>().SetInitialPoint(roadPoints[i]);
-            road.GetComponent<SetRoadNextPoint>().SetNextPoint(roadPoints[i + 1]);
+            road.GetComponent<RoadParameters>().SetInitialPoint(roadPoints[i]);
+            road.GetComponent<RoadParameters>().SetNextPoint(roadPoints[i + 1]);
 
             //yield return new WaitForSeconds(yieldDuration);
         }

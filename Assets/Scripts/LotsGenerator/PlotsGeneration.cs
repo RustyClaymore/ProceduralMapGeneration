@@ -21,14 +21,15 @@ public class PlotsGeneration : MonoBehaviour {
 
     public GameObject regionCenterPrefab;
 
+    public List<Vector3> centroidsLocations;
+
     // *************** PRIVATES ***************
     private List<GameObject> regionCenters;
 
     private List<Parcel> parcels;
 
     private GameObject plotsHolder;
-    [HideInInspector]
-    public GameObject centroidsHolder;
+    private GameObject centroidsHolder;
     private GameObject roadsHolder;
     private GameObject regionCentersHolder;
 	private GameObject convexHullHolder;
@@ -78,7 +79,7 @@ public class PlotsGeneration : MonoBehaviour {
                 List<Vector3> generatedPoints = new List<Vector3>();
 
                 Vector3 regionCenterPos = regionCenters[i].transform.position;
-                float regionRange = regionCenters[i].GetComponent<RegionStatController>().range;
+                float regionRange = regionCenters[i].GetComponent<ParcelGenerationController>().range;
                 generatedPoints = GeneratePolygon(new Vector3(regionCenterPos.x, regionCenters[i].transform.position.y, regionCenterPos.z), regionRange, 10);
                 parcel = CreateParcelFromPoints(generatedPoints);
 
@@ -217,7 +218,7 @@ public class PlotsGeneration : MonoBehaviour {
     void RecursiveParceller(Parcel parcel, int iter)
     {
         List<Parcel> subParcels = new List<Parcel>();
-        subParcels = UseParceller(parcel);
+        subParcels = UseParceller(parcel, iter);
 
         if(showObbs)
             ShowOBBRect(parcel);
@@ -240,14 +241,16 @@ public class PlotsGeneration : MonoBehaviour {
         }
     }
 
-    List<Parcel> UseParceller(Parcel parcel)
+    List<Parcel> UseParceller(Parcel parcel, int iter)
     {
         Parceller parceller = new Parceller(parcel);
-        parceller.SubdivideParcel();
+        parceller.SubdivideParcel(iter);
         DrawSubParcels(parceller.parcel);
 
         GameObject centroid = Instantiate(pointPrefab, parcel.FindParcelCentroid(), Quaternion.identity);
         centroid.transform.parent = centroidsHolder.transform;
+
+        centroidsLocations.Add(centroid.transform.position);
 
         return parceller.parcel.subParcels;
     }
@@ -297,7 +300,7 @@ public class PlotsGeneration : MonoBehaviour {
 
     Parcel CreateParcelFromPoints(List<Vector3> points)
     {
-        Parcel parcel = new Parcel((parcelsIdCounter - 1).ToString());
+        Parcel parcel = new Parcel((parcelsIdCounter - 1).ToString(), 0);
         for (int i = 0; i < points.Count; i++)
         {
             int nextIndex = (i + 1) % points.Count;
