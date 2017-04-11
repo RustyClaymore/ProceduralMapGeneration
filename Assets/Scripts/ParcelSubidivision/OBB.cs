@@ -186,7 +186,10 @@ public class OBB
 
         for (int i = 0; i < n; i++)
         {
-            convexHullPoints.Add(parcel.parcelPoints[i % n]);
+            if(next[i] != -1)
+            {
+                convexHullPoints.Add(parcel.parcelPoints[i % n]);
+            }
         }
 
         for (int i = 0; i < parcel.obb.convexHullPoints.Count; i++)
